@@ -36,15 +36,17 @@ namespace Damselfly.Core.Services
         private readonly StatusService _statusService;
         private readonly MetaDataService _metadataService;
         private readonly ConfigService _configService;
+        private readonly ImageCache _imageCache;
         private readonly ImageProcessService _imageProcessService;
 
         public IndexingService( StatusService statusService, MetaDataService metaData, 
-            ImageProcessService imageService, ConfigService config )
+            ImageProcessService imageService, ConfigService config, ImageCache imageCache )
         {
             _statusService = statusService;
             _configService = config;
             _metadataService = metaData;
             _imageProcessService = imageService;
+            _imageCache = imageCache;
         }
 
         public event Action OnFoldersChanged;
@@ -754,6 +756,9 @@ namespace Damselfly.Core.Services
                     {
                         db.Images.Update(image);
                         updatedImages++;
+
+                        // Changed, so throw it out of the cache
+                        _imageCache.Evict(image.ImageId);
                     }
                 }
                 catch (Exception ex)
@@ -776,7 +781,7 @@ namespace Damselfly.Core.Services
 
                 // Removing these will remove the associated ImageTag and selection references.
                 db.Images.RemoveRange(imagesToDelete);
-
+                imagesToDelete.ForEach(x => _imageCache.Evict(x.ImageId));
                 imagesWereAddedOrRemoved = true;
             }
 

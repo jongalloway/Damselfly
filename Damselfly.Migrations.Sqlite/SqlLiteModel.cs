@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
-using EFCore.BulkExtensions;
 using Damselfly.Core.Models;
 using Damselfly.Core.DbModels.Interfaces;
 using Damselfly.Core.DbModels.DBAbstractions;
@@ -30,6 +29,13 @@ namespace Damselfly.Migrations.Sqlite.Models
         public SqlLiteModel( string dbPath )
         {
             DatabasePath = dbPath;
+
+            LicenseManager.AddLicense("5927;100-otway.com", "licenceNumberGoesHere");
+            if (!LicenseManager.ValidateLicense(out var licenseErrorMessage, Z.BulkOperations.ProviderType.SQLite))
+            {
+                throw new Exception(licenseErrorMessage);
+            }
+
         }
 
         /// <summary>
@@ -144,14 +150,8 @@ namespace Damselfly.Migrations.Sqlite.Models
             bool success = false;
             try
             {
-                var config = new BulkConfig { SetOutputIdentity = true };
+                await db.BulkInsertAsync(itemsToSave );
 
-#if FALSE // https://github.com/borisdj/EFCore.BulkExtensions/issues/485
-                db.BulkInsert(itemsToSave, config);
-#else
-                itemsToSave.ForEach(x => db.Add(x));
-                await db.SaveChangesAsync();
-#endif
                 success = true;
             }
             catch (Exception ex)
@@ -182,12 +182,8 @@ namespace Damselfly.Migrations.Sqlite.Models
             bool success = false;
             try
             {
-#if FALSE // Replace when https://github.com/borisdj/EFCore.BulkExtensions/issues/485 is available.
-                db.BulkUpdate(itemsToSave);
-#else
-                itemsToSave.ForEach(x => db.Update(x));
-                await db.SaveChangesAsync();
-#endif
+                await db.BulkUpdateAsync( itemsToSave );
+
                 success = true;
             }
             catch (Exception ex)
@@ -239,21 +235,15 @@ namespace Damselfly.Migrations.Sqlite.Models
         /// <returns></returns>
         public async Task<bool> BulkInsertOrUpdate<T>(BaseDBModel db, DbSet<T> collection, List<T> itemsToSave, Func<T, bool> getKey) where T : class
         {
-            await db.BulkInsertOrUpdateAsync(itemsToSave);
+            await db.BulkUpdateAsync( itemsToSave, options => { options.InsertIfNotExists = true; } );
 
             return true;
         }
 
         public async Task<int> BatchDelete<T>(IQueryable<T> query) where T : class
         {
-            var db = new ImageContext();
-            db.RemoveRange(query);
-            return await db.SaveChangesAsync();
-
-#if false
-            // Call the EFCore Bulkextensions method once it's been fixed for .Net 6
-            return await query.BulkDeleteAsync();
-#endif 
+            // TODO Use bulk delete here?
+            return await query.DeleteAsync();
         }
 
         public IQueryable<T> ImageSearch<T>(DbSet<T> resultSet, string query, bool includeAITags) where T : class

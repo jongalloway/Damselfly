@@ -5,7 +5,6 @@
 @using Damselfly.Web.Shared.Images;
 @implements IDisposable
 
-@inject ImageService imageService
 @inject ThumbnailService thumbService
 @inject ViewDataService ViewDataService
 @inject IndexingService indexingService
@@ -53,7 +52,9 @@
 
         if (FolderId != 0)
         {
-            var folder = await ImageService.GetFolderAsync(FolderId);
+            using var db = new ImageContext();
+
+            var folder = await db.Folders.FindAsync(FolderId);
 
             if (folder != null)
             {

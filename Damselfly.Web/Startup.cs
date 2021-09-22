@@ -78,7 +78,6 @@ namespace Damselfly.Web
             services.AddSingleton<ConfigService>();
             services.AddSingleton<IConfigService>(x => x.GetRequiredService<ConfigService>());
             services.AddSingleton<ImageProcessorFactory>();
-            services.AddSingleton<ImageService>();
             services.AddSingleton<StatusService>();
             services.AddSingleton<ObjectDetector>();
             services.AddSingleton<IndexingService>();
@@ -93,6 +92,8 @@ namespace Damselfly.Web
             services.AddSingleton<AzureFaceService>();
             services.AddSingleton<EmguFaceService>();
             services.AddSingleton<ImageRecognitionService>();
+            services.AddMemoryCache();
+            services.AddSingleton<ImageCache>();
 
             // This needs to happen after ConfigService has been registered.
             services.AddAuthorization(config => SetupPolicies(config, services));

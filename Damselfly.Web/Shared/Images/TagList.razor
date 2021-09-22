@@ -6,11 +6,11 @@
 @using Damselfly.Core.DbModels
 
 @inject IJSRuntime JsRuntime
-@inject ImageService imageService
 @inject ThumbnailService thumbService
 @inject MetaDataService iptcService
 @inject SelectionService selectionService
 @inject IndexingService indexService
+@inject ImageCache imageCache 
 @inject MetaDataService metadataService
 @inject NavigationService navContext
 @inject NavigationManager NavigationManager
@@ -118,23 +118,23 @@
 </div>
 
 @code {
-        [Parameter]
-        public bool ShowFavourites { get; set; }
+    [Parameter]
+    public bool ShowFavourites { get; set; }
 
-        [Parameter]
-        public bool ShowAddKeywords { get; set; }
+    [Parameter]
+    public bool ShowAddKeywords { get; set; }
 
-        [Parameter]
-        public bool ShowImageKeywords { get; set; }
+    [Parameter]
+    public bool ShowImageKeywords { get; set; }
 
-        [Parameter]
-        public Image[] CurrentImages { get; set; }
+    [Parameter]
+    public Image[] CurrentImages { get; set; }
 
-        [Parameter]
-        public bool TrackSelection { get; set; }
+    [Parameter]
+    public bool TrackSelection { get; set; }
 
-        [CascadingParameter]
-        private Task<AuthenticationState> authenticationStateTask { get; set; }
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
 
     private IList<Tag> theImageTags { get; set; }
     private IList<ImageObject> theObjectTags { get; set; }
@@ -268,6 +268,13 @@
         InvokeAsync(() => { _ = OnParametersSetAsync(); });
     }
 
+    private async Task SetCurrentImages( List<Image> images )
+    {
+        var enriched = await imageCache.EnrichAndCache(images);
+        CurrentImages = enriched.ToArray();
+        await OnParametersSetAsync();
+    }
+
     public void Dispose()
     {
         selectionService.OnSelectionChanged -= SelectionChanged;
@@ -277,9 +284,7 @@
 
     protected void SelectionChanged()
     {
-        this.CurrentImages = selectionService.Selection.ToArray();
-
-        InvokeAsync(() => { _ = OnParametersSetAsync(); });
+        _ = SetCurrentImages(selectionService.Selection.ToList());
     }
 
     protected void FavouritesChanged()
@@ -289,20 +294,11 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        await Task.Run(RefreshTagsForSelection);
-    }
-
-    private void RefreshTagsForSelection()
-    {
         using var db = new ImageContext();
-
-        // Enrich all the images with their with their tags
-        foreach (var img in CurrentImages)
-            db.LoadTags(img);
 
         theImageTags = GetImageTags();
         theObjectTags = GetObjectTags();
-        InvokeAsync(StateHasChanged);
+        await InvokeAsync(StateHasChanged);
     }
 
     async Task ShowContextMenu(MouseEventArgs args, Tag tag, bool favourite)
@@ -336,4 +332,4 @@
         });
     }
 
-}
+    }

@@ -1,5 +1,4 @@
 ﻿
-@inject ImageService ImgService
 @inject SearchService searchService
 @inject ImageRecognitionService aiService
 @inject UserStatusService statusService;
@@ -34,6 +33,8 @@
 @code {
     [Parameter]
     public ImageObject theObject { get; set; }
+
+    private BlazoredTypeahead<string, string> nameInput;
 
     private bool Editing { get; set; }
 

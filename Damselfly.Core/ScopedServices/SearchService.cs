@@ -6,6 +6,7 @@ using Damselfly.Core.Models;
 using Damselfly.Core.Utils;
 using Microsoft.EntityFrameworkCore;
 using static Damselfly.Core.Models.SearchQuery;
+using Damselfly.Core.Services;
 
 namespace Damselfly.Core.ScopedServices
 {
@@ -18,23 +19,16 @@ namespace Damselfly.Core.ScopedServices
     /// </summary>
     public class SearchService
     {
-        public SearchService( UserStatusService statusService )
+        public SearchService( UserStatusService statusService, ImageCache cache )
         {
             _statusService = statusService;
+            _imageCache = cache;
         }
 
         private readonly UserStatusService _statusService;
+        private readonly ImageCache _imageCache;
         private readonly SearchQuery query = new SearchQuery();
         public List<Image> SearchResults { get; private set; } = new List<Image>();
-        private IDictionary<int, Image> imageCache = new Dictionary<int, Image>();
-
-        public Image GetFromCache( int imageId )
-        {
-            if (imageCache.TryGetValue(imageId, out var Image))
-                return Image;
-
-            return null;
-        }
 
         public void NotifyStateChanged()
         {
@@ -227,8 +221,8 @@ namespace Damselfly.Core.ScopedServices
                     // Now load the tags....
                     foreach (var img in results)
                     {
-                        imageCache[img.ImageId] = img;
-                        await db.LoadTags(img);
+                        var enrichedImg = await _imageCache.GetCachedImage( img );
+                        SearchResults.Add(enrichedImg);
                     }
 
                     tagwatch.Stop();
@@ -244,9 +238,6 @@ namespace Damselfly.Core.ScopedServices
 
                 Logging.Log($"Search: {results.Count()} images found in search query within {watch.ElapsedTime}ms (Tags: {tagwatch.ElapsedTime}ms)");
                 _statusService.StatusText = $"Found at least {first + results.Count()} images that match the search query.";
-
-                // Now save the results in our stored dataset
-                SearchResults.AddRange(results);
             }
         }
 

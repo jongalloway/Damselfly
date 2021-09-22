@@ -9,7 +9,8 @@
 @inject NavigationManager NavigationManager
 @inject ViewDataService ViewDataService
 @inject UserConfigService configService
-@inject IndexingService indexService            
+@inject IndexingService indexService
+@inject ImageCache imageCache         
 @inject IJSRuntime JsRuntime
 @implements ICropHelper
 
@@ -159,7 +160,7 @@ else
     {
         if (Int32.TryParse(ImageID, out var imageId))
         {
-            image = await ImageService.GetImage(imageId, true, true);
+            image = await imageCache.GetCachedImage(imageId);
             navContext.CurrentImage = image;
 
             nextImage = await navContext.GetNextImageAsync(true);
