@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Damselfly.Core.Models;
 using Damselfly.Core.DbModels.Interfaces;
 using Damselfly.Core.DbModels.DBAbstractions;
 using Damselfly.Core.Utils;
 using Z.EntityFramework.Plus;
-using Z.EntityFramework.Extensions;
-using System.Threading.Tasks;
 
 namespace Damselfly.Migrations.Sqlite.Models
 {
@@ -29,13 +28,6 @@ namespace Damselfly.Migrations.Sqlite.Models
         public SqlLiteModel( string dbPath )
         {
             DatabasePath = dbPath;
-
-            LicenseManager.AddLicense("5927;100-otway.com", "licenceNumberGoesHere");
-            if (!LicenseManager.ValidateLicense(out var licenseErrorMessage, Z.BulkOperations.ProviderType.SQLite))
-            {
-                throw new Exception(licenseErrorMessage);
-            }
-
         }
 
         /// <summary>
@@ -150,7 +142,8 @@ namespace Damselfly.Migrations.Sqlite.Models
             bool success = false;
             try
             {
-                await db.BulkInsertAsync(itemsToSave );
+                collection.AddRange(itemsToSave);
+                await db.SaveChangesAsync();
 
                 success = true;
             }
@@ -182,7 +175,8 @@ namespace Damselfly.Migrations.Sqlite.Models
             bool success = false;
             try
             {
-                await db.BulkUpdateAsync( itemsToSave );
+                collection.UpdateRange(itemsToSave);
+                await db.SaveChangesAsync();
 
                 success = true;
             }
@@ -213,7 +207,8 @@ namespace Damselfly.Migrations.Sqlite.Models
             bool success = false;
             try
             {
-                await db.BulkDeleteAsync(itemsToDelete);
+                collection.RemoveRange(itemsToDelete);
+                await db.SaveChangesAsync();
                 success = true;
             }
             catch (Exception ex)
@@ -233,11 +228,9 @@ namespace Damselfly.Migrations.Sqlite.Models
         /// <param name="itemsToSave"></param>
         /// <param name="getKey"></param>
         /// <returns></returns>
-        public async Task<bool> BulkInsertOrUpdate<T>(BaseDBModel db, DbSet<T> collection, List<T> itemsToSave, Func<T, bool> getKey) where T : class
+        public Task<bool> BulkInsertOrUpdate<T>(BaseDBModel db, DbSet<T> collection, List<T> itemsToSave, Func<T, bool> getKey) where T : class
         {
-            await db.BulkUpdateAsync( itemsToSave, options => { options.InsertIfNotExists = true; } );
-
-            return true;
+            throw new NotImplementedException();
         }
 
         public async Task<int> BatchDelete<T>(IQueryable<T> query) where T : class

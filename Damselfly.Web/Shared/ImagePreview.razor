@@ -123,6 +123,16 @@
         });
     }
 
+    public void ToggleShowObjects()
+    {
+        SetShowObjects(!showObjects);
+    }
+
+    public void ToggleZoomEnabled()
+    {
+        SetZoomEnabled(!zoomEnabled);
+    }
+
     private void SetShowObjects(bool newState)
     {
         if (newState == showObjects)

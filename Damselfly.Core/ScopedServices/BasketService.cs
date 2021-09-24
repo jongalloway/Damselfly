@@ -71,7 +71,7 @@ namespace Damselfly.Core.ScopedServices
             watch.Stop();
 
             BasketImages.Clear();
-            BasketImages.AddRange(images);
+            BasketImages.AddRange(enrichedImages);
 
             NotifyStateChanged();
         }

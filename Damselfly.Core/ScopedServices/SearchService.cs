@@ -222,6 +222,7 @@ namespace Damselfly.Core.ScopedServices
                     foreach (var img in results)
                     {
                         var enrichedImg = await _imageCache.GetCachedImage( img );
+
                         SearchResults.Add(enrichedImg);
                     }
 

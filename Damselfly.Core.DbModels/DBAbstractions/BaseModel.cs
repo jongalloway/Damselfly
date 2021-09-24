@@ -311,7 +311,7 @@ namespace Damselfly.Core.DbModels.DBAbstractions
             if (ReadOnly)
                 return;
 
-            await Task.Run(() => DatabaseSpecialisation.GenFullText(first));
+            await DatabaseSpecialisation.GenFullText(first);
         }
 
         // TODO - this is Sqlite specific and should move down into the MySqlite provider.

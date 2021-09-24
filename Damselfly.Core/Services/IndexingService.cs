@@ -1059,10 +1059,16 @@ namespace Damselfly.Core.Services
                 indexthread.Priority = ThreadPriority.Lowest;
                 indexthread.Start();
 
-                Task.Run(() => RunMetaDataScans());
+                Logging.Log("Starting metadata service.");
+
+                var metadataThread = new Thread(new ThreadStart(async () => { await RunMetaDataScans(); }));
+                metadataThread.Name = "MetaDataThread";
+                metadataThread.IsBackground = true;
+                metadataThread.Priority = ThreadPriority.Lowest;
+                metadataThread.Start();
             }
             else
-                Logging.Log("Indexing service has been disabled.");
+                Logging.Log("Indexing has been disabled.");
         }
 
         private void ProcessIndexing()
