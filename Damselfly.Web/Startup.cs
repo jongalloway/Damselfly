@@ -59,6 +59,7 @@ namespace Damselfly.Web
             services.AddServerSideBlazor();
             services.AddFileReaderService();
             services.AddMudServices();
+            services.AddMemoryCache();
 
             services.AddDbContext<ImageContext>();
             services.ConfigureApplicationCookie(options => options.Cookie.Name = "Damselfly");
@@ -92,7 +93,6 @@ namespace Damselfly.Web
             services.AddSingleton<AzureFaceService>();
             services.AddSingleton<EmguFaceService>();
             services.AddSingleton<ImageRecognitionService>();
-            services.AddMemoryCache();
             services.AddSingleton<ImageCache>();
 
             // This needs to happen after ConfigService has been registered.
@@ -225,7 +225,7 @@ namespace Damselfly.Web
             StartTaskScheduler(tasks, download, thumbService, metadata);
 
             // Start the face service before the thumbnail service
-            azureFace.StartService();
+            azureFace.StartService().Wait();
             indexService.StartService();
             thumbService.StartService();
             aiService.StartService();

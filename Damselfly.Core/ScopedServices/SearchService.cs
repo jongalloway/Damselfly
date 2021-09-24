@@ -108,7 +108,7 @@ namespace Damselfly.Core.ScopedServices
                 using var db = new ImageContext();
                 var watch = new Stopwatch("ImagesLoadData");
                 Stopwatch tagwatch = null;
-                Image[] results = new Image[0];
+                List<Image> results = new List<Image>();
 
                 try
                 {
@@ -207,24 +207,17 @@ namespace Damselfly.Core.ScopedServices
                         images = images.Where(x => x.MetaData.LensId == query.LensId);
                     }
 
-                    // Disable this for now - it's slow due to the EFCore subquery bug.
-                    // We mitigate it by loading the tags in a separate query below.
-                    // images = images.Include(x => x.ImageTags)
-                    //               .ThenInclude(x => x.Tag);
-
-                    results = await images.Skip(first)
+                    results = await images
+                                    .Skip(first)
                                     .Take(count)
-                                    .ToArrayAsync();
+                                    .ToListAsync();
 
                     tagwatch = new Stopwatch("SearchLoadTags");
 
                     // Now load the tags....
-                    foreach (var img in results)
-                    {
-                        var enrichedImg = await _imageCache.GetCachedImage( img );
+                    var enrichedImages = await _imageCache.EnrichAndCache( results );
 
-                        SearchResults.Add(enrichedImg);
-                    }
+                    SearchResults.AddRange(enrichedImages);
 
                     tagwatch.Stop();
                 }
