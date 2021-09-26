@@ -89,6 +89,8 @@ namespace Damselfly.Core.Services
 
             try
             {
+                // TODO: Use AsNoTracking here, for speed?
+
                 // We're either passed an existing image, or an image id.
                 if (image != null)
                 {

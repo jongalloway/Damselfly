@@ -2,6 +2,7 @@
 @using Damselfly.Core.Services;
 @using BlazorDateRangePicker
 
+@inject IDialogService DialogService
 @inject SearchService searchService
 @inject UserStatusService statusService
 
@@ -25,9 +26,7 @@
     <div class="damselfly-searchfilter">
         <ConflatedTextBox IconClass="fa-file" placeholder="Minimum file size" OnKeyPressed="@KeyChangedMinSize" OnValueChanged="@DoSearch" TextValue="@MinSize" />
     </div>
-    <div class="damselfly-searchfilter">
-        <CameraFilter />
-    </div>
+    <button title="Advanced Search" @onclick="@(() => OpenAdvancedSearch())" class="InputAddOn-item"><i class="fas fa-search" /></button>
 </div>
 
 @code {
@@ -35,9 +34,22 @@
     public string SearchText { get { return searchService.SearchText; } }
     public string MinSize { get { return searchService.MinSizeKB.ToString(); } }
 
+    private async Task OpenAdvancedSearch()
+    {
+        SearchQuery query = new SearchQuery();
+        // TODO: Copy query here
+        query.SearchText = SearchText;
+        query.MinDate = searchService.MinDate;
+        query.MaxDate = searchService.MaxDate;
+
+        var parameters = new DialogParameters { { "InputQuery", query } };
+        var dialog = DialogService.Show<AdvancedSearchDialog>("Advanced Search", parameters);
+        var result = await dialog.Result;
+    }
+
     public void OnRangeSelect(BlazorDateRangePicker.DateRange range)
     {
-        if( range != null )
+        if (range != null)
             searchService.SetDateRange(range.Start.Date, range.End.Date);
         else
             searchService.SetDateRange(null, null);

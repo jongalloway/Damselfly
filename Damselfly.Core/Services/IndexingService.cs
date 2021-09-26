@@ -39,6 +39,9 @@ namespace Damselfly.Core.Services
         private readonly ImageCache _imageCache;
         private readonly ImageProcessService _imageProcessService;
 
+        public ICollection<Camera> Cameras {  get { return _cameraCache.Values;  } }
+        public ICollection<Lens> Lenses { get { return _lensCache.Values; } }
+
         public IndexingService( StatusService statusService, MetaDataService metaData, 
             ImageProcessService imageService, ConfigService config, ImageCache imageCache )
         {
@@ -301,6 +304,25 @@ namespace Damselfly.Core.Services
         }
 
         #region Tag, Lens and Camera Caching
+        private void InitCameraAndLensCaches()
+        {
+            if (_lensCache == null)
+            {
+                using ImageContext db = new ImageContext();
+                _lensCache = new ConcurrentDictionary<string, Lens>(db.Lenses
+                                                                      .AsNoTracking()
+                                                                      .ToDictionary(x => x.Make + x.Model, y => y));
+            }
+
+            if (_cameraCache == null)
+            {
+                using var db = new ImageContext();
+                _cameraCache = new ConcurrentDictionary<string, Camera>(db.Cameras
+                                                                           .AsNoTracking() // We never update, so this is faster
+                                                                           .ToDictionary(x => x.Make + x.Model, y => y));
+            }
+        }
+
         /// <summary>
         /// Get a camera object, for each make/model. Uses an in-memory cache for speed.
         /// </summary>
@@ -309,14 +331,6 @@ namespace Damselfly.Core.Services
         /// <returns></returns>
         private Camera GetCamera( string make, string model, string serial)
         {
-            if (_cameraCache == null)
-            {
-                using var db = new ImageContext();
-                _cameraCache = new ConcurrentDictionary<string, Camera>( db.Cameras
-                                                                           .AsNoTracking() // We never update, so this is faster
-                                                                           .ToDictionary(x => x.Make + x.Model, y => y) );
-            }
-
             string cacheKey = make + model;
 
             if (string.IsNullOrEmpty(cacheKey))
@@ -345,14 +359,6 @@ namespace Damselfly.Core.Services
         /// <returns></returns>
         private Lens GetLens(string make, string model, string serial)
         {
-            if (_lensCache == null)
-            {
-                using ImageContext db = new ImageContext();
-                _lensCache = new ConcurrentDictionary<string, Lens>(db.Lenses
-                                                                      .AsNoTracking()
-                                                                      .ToDictionary(x => x.Make + x.Model, y => y)) ;
-            }
-
             string cacheKey = make + model;
 
             if (string.IsNullOrEmpty(cacheKey))
@@ -1049,6 +1055,8 @@ namespace Damselfly.Core.Services
 
         public void StartService()
         {
+            InitCameraAndLensCaches();
+
             if (EnableIndexing)
             {
                 Logging.Log("Starting indexing service.");

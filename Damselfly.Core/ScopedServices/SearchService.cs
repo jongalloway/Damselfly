@@ -53,6 +53,14 @@ namespace Damselfly.Core.ScopedServices
         public GroupingType Grouping { get { return query.Grouping; } set { if (query.Grouping != value) { query.Grouping = value; QueryChanged(); } } }
         public SortOrderType SortOrder { get { return query.SortOrder; } set { if (query.SortOrder != value) { query.SortOrder = value; QueryChanged(); } } }
 
+        public void ApplyQuery(SearchQuery newQuery)
+        {
+            if (newQuery.CopyPropertiesTo(query))
+            {
+                QueryChanged();
+            }
+        }
+
         public void SetDateRange( DateTime? min, DateTime? max )
         {
             if (query.MinDate != min || query.MaxDate != max)
