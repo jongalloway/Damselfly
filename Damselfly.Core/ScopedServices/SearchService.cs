@@ -42,8 +42,8 @@ namespace Damselfly.Core.ScopedServices
         public string SearchText { get { return query.SearchText; } set { if (query.SearchText != value.Trim() ) { query.SearchText = value.Trim(); QueryChanged(); } } }
         public DateTime? MaxDate { get { return query.MaxDate; } set { if (query.MaxDate != value) { query.MaxDate = value; QueryChanged(); } } }
         public DateTime? MinDate { get { return query.MinDate; } set { if (query.MinDate != value) { query.MinDate = value; QueryChanged(); } } }
-        public ulong MaxSizeKB { get { return query.MaxSizeKB; } set { if (query.MaxSizeKB != value) { query.MaxSizeKB = value; QueryChanged(); } } }
-        public ulong MinSizeKB { get { return query.MinSizeKB; } set { if (query.MinSizeKB != value) { query.MinSizeKB = value; QueryChanged(); } } }
+        public int? MaxSizeKB { get { return query.MaxSizeKB; } set { if (query.MaxSizeKB != value) { query.MaxSizeKB = value; QueryChanged(); } } }
+        public int? MinSizeKB { get { return query.MinSizeKB; } set { if (query.MinSizeKB != value) { query.MinSizeKB = value; QueryChanged(); } } }
         public Folder Folder { get { return query.Folder; } set { if (query.Folder != value) { query.Folder = value; QueryChanged(); } } }
         public bool TagsOnly { get { return query.TagsOnly; } set { if (query.TagsOnly != value) { query.TagsOnly = value; QueryChanged(); } } }
         public bool IncludeAITags { get { return query.IncludeAITags; } set { if (query.IncludeAITags != value) { query.IncludeAITags = value; QueryChanged(); } } }
@@ -163,6 +163,39 @@ namespace Damselfly.Core.ScopedServices
                         images = images.Where(x => x.FolderId == query.Folder.FolderId);
                     }
 
+                    if (query.MinDate.HasValue || query.MaxDate.HasValue)
+                    {
+                        var minDate = query.MinDate.HasValue ? query.MinDate : DateTime.MinValue;
+                        var maxDate = query.MaxDate.HasValue ? query.MaxDate : DateTime.MaxValue;
+                        // Always filter by date - because if there's no filter
+                        // set then they'll be set to min/max date.
+                        images = images.Where(x => x.SortDate >= minDate &&
+                                                   x.SortDate <= maxDate);
+                    }
+
+                    if( query.MinSizeKB.HasValue )
+                    {
+                        int minSizeBytes = query.MinSizeKB.Value * 1024;
+                        images = images.Where(x => x.FileSizeBytes > minSizeBytes);
+                    }
+
+                    if (query.MaxSizeKB.HasValue )
+                    {
+                        int maxSizeBytes = query.MaxSizeKB.Value * 1024;
+                        images = images.Where(x => x.FileSizeBytes < maxSizeBytes);
+                    }
+
+                    if (query.CameraId != -1 || query.LensId != -1)
+                    {
+                        images = images.Include(x => x.MetaData);
+
+                        if (query.CameraId != -1)
+                            images = images.Where(x => x.MetaData.CameraId == query.CameraId);
+ 
+                        if (query.LensId != -1)
+                            images = images.Where(x => x.MetaData.LensId == query.LensId);
+                    }
+
                     // Add in the ordering for the group by
                     switch (query.Grouping)
                     {
@@ -179,40 +212,6 @@ namespace Damselfly.Core.ScopedServices
                             break;
                         default:
                             throw new ArgumentException("Unexpected grouping type.");
-                    }
-
-                    if (query.MinDate.HasValue || query.MaxDate.HasValue)
-                    {
-                        var minDate = query.MinDate.HasValue ? query.MinDate : DateTime.MinValue;
-                        var maxDate = query.MaxDate.HasValue ? query.MaxDate : DateTime.MaxValue;
-                        // Always filter by date - because if there's no filter
-                        // set then they'll be set to min/max date.
-                        images = images.Where(x => x.SortDate >= minDate &&
-                                                   x.SortDate <= maxDate);
-                    }
-
-                    if( query.MinSizeKB > ulong.MinValue )
-                    {
-                        ulong minSizeBytes = query.MinSizeKB / 1024;
-                        images = images.Where(x => x.FileSizeBytes >= minSizeBytes);
-                    }
-
-                    if (query.MaxSizeKB < ulong.MaxValue )
-                    {
-                        ulong maxSizeBytes = query.MaxSizeKB / 1024;
-                        images = images.Where(x => x.FileSizeBytes <= maxSizeBytes);
-                    }
-
-                    images = images.Include(x => x.MetaData);
-
-                    if ( query.CameraId != -1 )
-                    {
-                        images = images.Where(x => x.MetaData.CameraId == query.CameraId);
-                    }
-
-                    if (query.LensId != -1)
-                    {
-                        images = images.Where(x => x.MetaData.LensId == query.LensId);
                     }
 
                     results = await images

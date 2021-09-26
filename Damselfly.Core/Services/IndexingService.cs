@@ -739,7 +739,7 @@ namespace Damselfly.Core.Services
                     }
 
                     // Store some info about the disk file
-                    image.FileSizeBytes = (ulong)file.Length;
+                    image.FileSizeBytes = (int)file.Length;
                     image.FileCreationDate = file.CreationTimeUtc;
                     image.FileLastModDate = file.LastWriteTimeUtc;
 

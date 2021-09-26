@@ -665,13 +665,20 @@ f
     padding-left: 3px;
 }
 
-.damselfly-browsetool {
-    flex: 1;
+.damselfly-browsetools {
     margin: 3px;
+    margin-right: 6px;
     display: flex;
-    min-width: 200px;
     flex-flow: row;
-    align-items: center;
+    align-items: baseline;
+    font-size: 18px;
+}
+
+.damselfly-browsetool {
+    display: flex;
+    flex: 1;
+    margin: 4px;
+    flex-flow: row;
 }
 
 .damselfly-searchhint {

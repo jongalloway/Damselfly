@@ -154,7 +154,7 @@ namespace Damselfly.Core.Models
 
         // Image File metadata
         public string FileName { get; set; }
-        public ulong FileSizeBytes { get; set; }
+        public int FileSizeBytes { get; set; }
         public DateTime FileCreationDate { get; set; }
         public DateTime FileLastModDate { get; set; }
 
@@ -615,14 +615,14 @@ namespace Damselfly.Core.Models
         public string SearchText { get; set; }
         public DateTime? MaxDate { get; set; } = null;
         public DateTime? MinDate { get; set; } = null;
-        public ulong MaxSizeKB { get; set; } = ulong.MaxValue;
-        public ulong MinSizeKB { get; set; } = ulong.MinValue;
-        public Folder Folder { get; set; } = null;
+        public int? MaxSizeKB { get; set; } = null;
+        public int? MinSizeKB { get; set; } = null;
         public bool TagsOnly { get; set; } = false;
         public bool IncludeAITags { get; set; } = true;
         public int CameraId { get; set; } = -1;
-        public Tag Tag { get; set; } = null;
         public int LensId { get; set; } = -1;
+        public Folder Folder { get; set; } = null;
+        public Tag Tag { get; set; } = null;
         public GroupingType Grouping { get; set; } = GroupingType.None;
         public SortOrderType SortOrder { get; set; } = SortOrderType.Descending;
 
