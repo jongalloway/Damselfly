@@ -45,6 +45,7 @@
         var parameters = new DialogParameters { { "InputQuery", query } };
         var dialog = DialogService.Show<AdvancedSearchDialog>("Advanced Search", parameters);
         var result = await dialog.Result;
+        StateHasChanged();
     }
 
     public void OnRangeSelect(BlazorDateRangePicker.DateRange range)
