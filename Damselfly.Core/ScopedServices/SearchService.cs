@@ -19,7 +19,7 @@ namespace Damselfly.Core.ScopedServices
     /// </summary>
     public class SearchService
     {
-        public SearchService( UserStatusService statusService, ImageCache cache )
+        public SearchService( UserStatusService statusService, ImageCache cache)
         {
             _statusService = statusService;
             _imageCache = cache;
@@ -286,7 +286,8 @@ namespace Damselfly.Core.ScopedServices
                 if (!string.IsNullOrEmpty(dateRange))
                     hints.Add($"Date: {dateRange}");
 
-                // TODO: Need camera here.
+                if (UntaggedImages)
+                    hints.Add($"Untagged images");
 
                 return string.Join(", ", hints);
             }
