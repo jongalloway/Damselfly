@@ -5,8 +5,9 @@ using System.Threading.Tasks;
 using Damselfly.Core.Models;
 using Damselfly.Core.Utils;
 using Microsoft.EntityFrameworkCore;
-using static Damselfly.Core.Models.SearchQuery;
 using Damselfly.Core.Services;
+using Humanizer;
+using static Damselfly.Core.Models.SearchQuery;
 
 namespace Damselfly.Core.ScopedServices
 {
@@ -53,6 +54,7 @@ namespace Damselfly.Core.ScopedServices
         public int LensId { get { return query.LensId; } set { if (query.LensId != value) { query.LensId = value; QueryChanged(); } } }
         public GroupingType Grouping { get { return query.Grouping; } set { if (query.Grouping != value) { query.Grouping = value; QueryChanged(); } } }
         public SortOrderType SortOrder { get { return query.SortOrder; } set { if (query.SortOrder != value) { query.SortOrder = value; QueryChanged(); } } }
+        public FaceSearchType FaceSearch { get { return query.FaceSearch; } set { if (query.FaceSearch != value) { query.FaceSearch = value; QueryChanged(); } } }
 
         public void ApplyQuery(SearchQuery newQuery)
         {
@@ -288,6 +290,9 @@ namespace Damselfly.Core.ScopedServices
 
                 if (UntaggedImages)
                     hints.Add($"Untagged images");
+
+                if (FaceSearch != FaceSearchType.None)
+                    hints.Add($"{FaceSearch.Humanize()}");
 
                 return string.Join(", ", hints);
             }

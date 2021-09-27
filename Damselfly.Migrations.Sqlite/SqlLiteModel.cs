@@ -8,6 +8,7 @@ using Damselfly.Core.DbModels.Interfaces;
 using Damselfly.Core.DbModels.DBAbstractions;
 using Damselfly.Core.Utils;
 using Z.EntityFramework.Plus;
+using SqlParameter = Microsoft.Data.Sqlite.SqliteParameter;
 
 namespace Damselfly.Migrations.Sqlite.Models
 {
@@ -239,6 +240,11 @@ namespace Damselfly.Migrations.Sqlite.Models
             return await query.DeleteAsync();
         }
 
+        private string Sanitize( string input )
+        {
+            return input.Replace(";", " ").Replace( "--", " ").Replace( "#", " ").Replace( "\'", "" ).Replace( "\"", "");
+        }
+
         public IQueryable<T> ImageSearch<T>(DbSet<T> resultSet, string query, bool includeAITags) where T : class
         {
             // Convert the string from a set of terms to quote and add * so they're all exact partial matches
@@ -247,18 +253,25 @@ namespace Damselfly.Migrations.Sqlite.Models
 
             var sql = "SELECT i.* from Images i";
             int i = 1;
+            var parms = new List<string>();
 
-            foreach( var term in terms )
+            /// Some hoop-jumping to escape the text terms, and then put them into parameters so we can pass to ExecuteSqlRaw
+            /// without risk of SQL injection. Unfortunately, though, it appears that MATCH doesn't support @param type params
+            /// and gives a syntax error. So it doesn't seem there's any way around doing this right now. We'll mitigate by
+            /// stripping out semi-colons etc from the search term.
+            foreach ( var term in terms.Select( x => Sanitize( x) ) )
             {
-                var ftsTerm = $"\"{term}\"*";
+                parms.Add(term);
 
+                var ftsTerm = $"\"{term}\"*"; 
+                var termParam = $"{{{i-1}}}"; // Param like {0}
                 var tagSubQuery = $"select distinct it.ImageId from FTSKeywords fts join ImageTags it on it.tagId = fts.TagId where fts.Keyword MATCH ('{ftsTerm}')";
                 var joinSubQuery = tagSubQuery;
 
                 if (includeAITags)
                 {
                     var objectSubQuery = $"select distinct io.ImageId from FTSKeywords fts join ImageObjects io on io.tagId = fts.TagId where fts.Keyword MATCH ('{ftsTerm}')";
-                    var nameSubQuery = $"select distinct io.ImageId from People p join ImageObjects io on io.PersonID = p.PersonID where p.Name like '%{term}%'";
+                    var nameSubQuery = $"select distinct io.ImageId from People p join ImageObjects io on io.PersonID = p.PersonID where p.Name like '%{termParam}%'";
                     joinSubQuery = $"{tagSubQuery} union {objectSubQuery} union {nameSubQuery}";
                 }
 
@@ -275,7 +288,7 @@ namespace Damselfly.Migrations.Sqlite.Models
                 i++;
             }
 
-            return resultSet.FromSqlRaw(sql);
+            return resultSet.FromSqlRaw(sql, terms);
         }
 
         /// <summary>

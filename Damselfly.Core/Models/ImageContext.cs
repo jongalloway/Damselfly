@@ -612,6 +612,15 @@ namespace Damselfly.Core.Models
             Date
         };
 
+        public enum FaceSearchType
+        {
+            None,
+            Faces,
+            NoFaces,
+            IdentifiedFaces,
+            UnidentifiedFaces
+        }
+
         public string SearchText { get; set; } = string.Empty;
         public DateTime? MaxDate { get; set; } = null;
         public DateTime? MinDate { get; set; } = null;
@@ -626,10 +635,11 @@ namespace Damselfly.Core.Models
         public Tag Tag { get; set; } = null;
         public GroupingType Grouping { get; set; } = GroupingType.None;
         public SortOrderType SortOrder { get; set; } = SortOrderType.Descending;
+        public FaceSearchType FaceSearch { get; set; } = FaceSearchType.None;
 
         public override string ToString()
         {
-            return $"Filter: T={SearchText}, F={Folder?.FolderId}, Max={MaxDate}, Min={MinDate}, Max={MaxSizeKB}KB, Min={MinSizeKB}KB, Tags={TagsOnly}, Grouping={Grouping}, Sort={SortOrder}";
+            return $"Filter: T={SearchText}, F={Folder?.FolderId}, Max={MaxDate}, Min={MinDate}, Max={MaxSizeKB}KB, Min={MinSizeKB}KB, Tags={TagsOnly}, Grouping={Grouping}, Sort={SortOrder}, Face={FaceSearch}";
         }
     }
 
