@@ -57,6 +57,7 @@ namespace Damselfly.Core.ScopedServices
         public GroupingType Grouping { get { return query.Grouping; } set { if (query.Grouping != value) { query.Grouping = value; QueryChanged(); } } }
         public SortOrderType SortOrder { get { return query.SortOrder; } set { if (query.SortOrder != value) { query.SortOrder = value; QueryChanged(); } } }
         public FaceSearchType FaceSearch { get { return query.FaceSearch; } set { if (query.FaceSearch != value) { query.FaceSearch = value; QueryChanged(); } } }
+        public OrientationType Orientation { get { return query.Orientation; } set { if (query.Orientation != value) { query.Orientation = value; QueryChanged(); } } }
 
         public void ApplyQuery(SearchQuery newQuery)
         {
@@ -195,6 +196,14 @@ namespace Damselfly.Core.ScopedServices
                         images = images.Where(x => x.FileSizeBytes < maxSizeBytes);
                     }
 
+                    if( query.Orientation != OrientationType.None )
+                    {
+                        if (query.Orientation == OrientationType.Landscape)
+                            images = images.Where(x => x.MetaData.Width > x.MetaData.Height);
+                        else
+                            images = images.Where(x => x.MetaData.Height > x.MetaData.Width);
+                    }
+
                     if (query.CameraId != -1 || query.LensId != -1)
                     {
                         images = images.Include(x => x.MetaData);
@@ -204,6 +213,19 @@ namespace Damselfly.Core.ScopedServices
  
                         if (query.LensId != -1)
                             images = images.Where(x => x.MetaData.LensId == query.LensId);
+                    }
+
+                    if( query.FaceSearch != FaceSearchType.None )
+                    {
+                        images = query.FaceSearch switch
+                        {
+                            FaceSearchType.Faces => images.Where(x => x.ImageObjects.Any(x => x.Type == ImageObject.ObjectTypes.Face.ToString() )),
+                            FaceSearchType.NoFaces => images.Where(x => !x.ImageObjects.Any(x => x.Type == ImageObject.ObjectTypes.Face.ToString() )),
+                            FaceSearchType.UnidentifiedFaces => images.Where(x => x.ImageObjects.Any(x => x.Person == null || x.Person.Name.Equals("Unknown"))),
+                            FaceSearchType.IdentifiedFaces => images.Where(x => x.ImageObjects.Any(x => x.Person != null && ! x.Person.Name.Equals("Unknown"))),
+                            _ => images
+                        };
+                            
                     }
 
                     // Add in the ordering for the group by
@@ -296,7 +318,10 @@ namespace Damselfly.Core.ScopedServices
                 if (FaceSearch != FaceSearchType.None)
                     hints.Add($"{FaceSearch.Humanize()}");
 
-                if( CameraId > 0 )
+                if (Orientation != OrientationType.None)
+                    hints.Add($"{Orientation.Humanize()}");
+
+                if ( CameraId > 0 )
                 {
                     var cam = _indexingService.Cameras.FirstOrDefault(x => x.CameraId == CameraId);
                     if (cam != null)

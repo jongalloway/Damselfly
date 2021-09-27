@@ -1,6 +1,7 @@
 ﻿
 @using System.ComponentModel.DataAnnotations
 @using Damselfly.Core.Interfaces
+@using Humanizer
 
 @inject BasketService basketService
 @inject UserService userService
@@ -17,53 +18,87 @@
     <DialogContent>
         <MudTextField @bind-Value="@Query.SearchText" Label="Search Text" Variant="Variant.Filled" />
 
-        <MudCheckBox @bind-Checked="@Query.UntaggedImages" Label="Only show images with no keyword tags" />
         <MudCheckBox @bind-Checked="@Query.TagsOnly" Label="Exclude filename/folder from text search" />
         <MudCheckBox @bind-Checked="@Query.IncludeAITags" Label="Include AI tags when searching" />
+        <MudCheckBox @bind-Checked="@Query.UntaggedImages" Label="Only show images with no keyword tags" />
 
-        <!-- Add Search text, date, tag, person etc etc -->
-        <MudSelect T="int" Label="Camera" HelperText="Camera Model to filter" @bind-Value="Query.CameraId" Variant="Variant.Filled">
-            <MudSelectItem T="int" Value="-1">Any Camera</MudSelectItem>
-            @foreach (var cam in indexingService.Cameras)
-            {
-                <MudSelectItem T="int" Value="@cam.CameraId">
-                    @cam.Make @cam.Model
-                </MudSelectItem>
-            }
-        </MudSelect>
-        <MudSelect T="int" Label="Lens" HelperText="Lens Model to filter" @bind-Value="Query.LensId" Variant="Variant.Filled">
-            <MudSelectItem T="int" Value="-1">Any Lens</MudSelectItem>
-            @foreach (var lens in indexingService.Lenses)
-            {
-                <MudSelectItem T="int" Value="@lens.LensId">
-                    @lens.Make @lens.Model
-                </MudSelectItem>
-            }
-        </MudSelect>
-        <MudSelect T="int?" Label="Max File Size" HelperText="Max File Size" @bind-Value="Query.MaxSizeKB" Variant="Variant.Filled">
-            <MudSelectItem T="int?" Value="@null">Any Size</MudSelectItem>
-            @foreach (var choice in fileSizeChoices)
-            {
-                <MudSelectItem T="int?" Value="@choice.Value">
-                    @choice.Key
-                </MudSelectItem>
-            }
-        </MudSelect>
+        <div class="damselfly-dialogrow">
+            <div class="damselfly-dialogctrl">
+                <MudSelect T="SearchQuery.FaceSearchType" Label="People Filters" HelperText="Look for files with/without faces" @bind-Value="Query.FaceSearch" Variant="Variant.Filled">
+                    @foreach (var choice in faceTypes)
+                    {
+                        <MudSelectItem Value="@choice">
+                            @choice.ToString().Humanize()
+                        </MudSelectItem>
+                    }
+                </MudSelect>
+            </div>
+            <div class="damselfly-dialogctrl">
+                <MudSelect T="SearchQuery.OrientationType" Label="Orientation" HelperText="Filter landscape/portrait images" @bind-Value="Query.Orientation" Variant="Variant.Filled">
+                    @foreach (var choice in orientationTypes)
+                    {
+                        <MudSelectItem Value="@choice">
+                            @choice.ToString().Humanize()
+                        </MudSelectItem>
+                    }
+                </MudSelect>
+            </div>
+        </div>
 
-        <MudSelect T="int?" Label="Min File Size" HelperText="Min File Size" @bind-Value="Query.MinSizeKB" Variant="Variant.Filled">
-            <MudSelectItem T="int?" Value="@null">Any Size</MudSelectItem>
-            @foreach (var choice in fileSizeChoices)
-            {
-                <MudSelectItem T="int?" Value="@choice.Value">
-                    @choice.Key
-                </MudSelectItem>
-            }
-        </MudSelect>
+        <div class="damselfly-dialogrow">
+            <div class="damselfly-dialogctrl">
+                <MudSelect T="int" Label="Camera" HelperText="Camera Model to filter" @bind-Value="Query.CameraId" Variant="Variant.Filled">
+                    <MudSelectItem T="int" Value="-1">Any Camera</MudSelectItem>
+                    @foreach (var cam in indexingService.Cameras)
+                    {
+                        <MudSelectItem T="int" Value="@cam.CameraId">
+                            @cam.Make @cam.Model
+                        </MudSelectItem>
+                    }
+                </MudSelect>
+            </div>
+            <div class="damselfly-dialogctrl">
+                <MudSelect T="int" Label="Lens" HelperText="Lens Model to filter" @bind-Value="Query.LensId" Variant="Variant.Filled">
+                    <MudSelectItem T="int" Value="-1">Any Lens</MudSelectItem>
+                    @foreach (var lens in indexingService.Lenses)
+                    {
+                        <MudSelectItem T="int" Value="@lens.LensId">
+                            @lens.Make @lens.Model
+                        </MudSelectItem>
+                    }
+                </MudSelect>
+            </div>
+        </div>
+
+        <div class="damselfly-dialogrow">
+            <div class="damselfly-dialogctrl">
+                <MudSelect T="int?" Label="Max File Size" HelperText="Max File Size" @bind-Value="Query.MaxSizeKB" Variant="Variant.Filled">
+                    <MudSelectItem T="int?" Value="@null">Any Size</MudSelectItem>
+                    @foreach (var choice in fileSizeChoices)
+                    {
+                        <MudSelectItem T="int?" Value="@choice.Value">
+                            @choice.Key
+                        </MudSelectItem>
+                    }
+                </MudSelect>
+            </div>
+            <div class="damselfly-dialogctrl">
+                <MudSelect T="int?" Label="Min File Size" HelperText="Min File Size" @bind-Value="Query.MinSizeKB" Variant="Variant.Filled">
+                    <MudSelectItem T="int?" Value="@null">Any Size</MudSelectItem>
+                    @foreach (var choice in fileSizeChoices)
+                    {
+                        <MudSelectItem T="int?" Value="@choice.Value">
+                            @choice.Key
+                        </MudSelectItem>
+                    }
+                </MudSelect>
+            </div>
+        </div>
     </DialogContent>
     <DialogActions>
         <MudItem xs="12" md="12">
             <MudPaper Elevation="0" Class="d-flex py-2 px-1">
-                <MudButton Class="pa-2 ml-2 mr-auto" Color="Color.Warning" OnClick="ResetSearch">Reset</MudButton>
+                <MudButton Class="pa-2 ml-2 mr-auto" Color="Color.Warning" OnClick="ResetSearch">Reset Search</MudButton>
                 <MudButton Class="pa-2 mx-2" OnClick="Cancel">Cancel</MudButton>
                 <MudButton Class="pa-2 mx-2" Color="Color.Primary" OnClick="Search">Search</MudButton>
             </MudPaper>
@@ -76,6 +111,8 @@
     MudDialogInstance MudDialog { get; set; }
 
     private SearchQuery Query = new SearchQuery();
+    private List<SearchQuery.FaceSearchType> faceTypes = EnumerableExtensions.GetEnumList<SearchQuery.FaceSearchType>();
+    private List<SearchQuery.OrientationType> orientationTypes = EnumerableExtensions.GetEnumList<SearchQuery.OrientationType>();
 
     private List<KeyValuePair<string, int>> fileSizeChoices = new List<KeyValuePair<string, int>> {
         new KeyValuePair<string, int>( "1KB", 1 ),

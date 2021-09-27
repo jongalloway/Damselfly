@@ -592,6 +592,19 @@ f
     background-image: linear-gradient(180deg, var( --statusbar-gradstart ), var( --statusbar-gradend ));
 }
 
+.damselfly-dialogrow {
+    display: flex;
+    margin-bottom: 5px;
+    flex-direction: row;
+    justify-content: space-evenly;
+}
+
+.damselfly-dialogctrl {
+    flex: 1 1 50%;
+    margin-left: 3px;
+    margin-right: 3px;
+}
+
 .damselfly-statusitem {
     display: flex;
     flex: 0 0 auto;
