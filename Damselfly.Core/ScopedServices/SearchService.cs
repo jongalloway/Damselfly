@@ -20,14 +20,16 @@ namespace Damselfly.Core.ScopedServices
     /// </summary>
     public class SearchService
     {
-        public SearchService( UserStatusService statusService, ImageCache cache)
+        public SearchService( UserStatusService statusService, ImageCache cache, IndexingService indexingService)
         {
             _statusService = statusService;
             _imageCache = cache;
+            _indexingService = indexingService;
         }
 
         private readonly UserStatusService _statusService;
         private readonly ImageCache _imageCache;
+        private readonly IndexingService _indexingService;
         private readonly SearchQuery query = new SearchQuery();
         public List<Image> SearchResults { get; private set; } = new List<Image>();
 
@@ -294,7 +296,24 @@ namespace Damselfly.Core.ScopedServices
                 if (FaceSearch != FaceSearchType.None)
                     hints.Add($"{FaceSearch.Humanize()}");
 
-                return string.Join(", ", hints);
+                if( CameraId > 0 )
+                {
+                    var cam = _indexingService.Cameras.FirstOrDefault(x => x.CameraId == CameraId);
+                    if (cam != null)
+                        hints.Add($"Camera: {cam.Model}");
+                }
+
+                if (LensId > 0)
+                {
+                    var lens = _indexingService.Lenses.FirstOrDefault(x => x.LensId == LensId);
+                    if (lens != null)
+                        hints.Add($"Lens: {lens.Model}");
+                }
+
+                if( hints.Any() )
+                    return string.Join(", ", hints);
+
+                return "No Filter";
             }
         }
     }
