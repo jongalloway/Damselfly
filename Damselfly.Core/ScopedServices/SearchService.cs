@@ -47,6 +47,7 @@ namespace Damselfly.Core.ScopedServices
         public Folder Folder { get { return query.Folder; } set { if (query.Folder != value) { query.Folder = value; QueryChanged(); } } }
         public bool TagsOnly { get { return query.TagsOnly; } set { if (query.TagsOnly != value) { query.TagsOnly = value; QueryChanged(); } } }
         public bool IncludeAITags { get { return query.IncludeAITags; } set { if (query.IncludeAITags != value) { query.IncludeAITags = value; QueryChanged(); } } }
+        public bool UntaggedImages { get { return query.UntaggedImages; } set { if (query.UntaggedImages != value) { query.UntaggedImages = value; QueryChanged(); } } }
         public int CameraId { get { return query.CameraId; } set { if (query.CameraId != value) { query.CameraId = value; QueryChanged(); } } }
         public Tag Tag { get { return query.Tag; } set { if (query.Tag != value) { query.Tag = value; QueryChanged(); } } }
         public int LensId { get { return query.LensId; } set { if (query.LensId != value) { query.LensId = value; QueryChanged(); } } }
@@ -142,6 +143,11 @@ namespace Damselfly.Core.ScopedServices
                         var objImages = images.Where(x => x.ImageObjects.Any(y => y.TagId == query.Tag.TagId));
 
                         images = tagImages.Union(objImages);
+                    }
+
+                    if( query.UntaggedImages )
+                    {
+                        images = images.Where(x => ! x.ImageTags.Any() );
                     }
 
                     // If selected, filter by the image filename/foldername

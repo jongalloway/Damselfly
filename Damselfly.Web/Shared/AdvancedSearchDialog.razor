@@ -17,6 +17,7 @@
     <DialogContent>
         <MudTextField @bind-Value="@Query.SearchText" Label="Search Text" Variant="Variant.Filled" />
 
+        <MudCheckBox @bind-Checked="@Query.UntaggedImages" Label="Only show images with no keyword tags" />
         <MudCheckBox @bind-Checked="@Query.TagsOnly" Label="Exclude filename/folder from text search" />
         <MudCheckBox @bind-Checked="@Query.IncludeAITags" Label="Include AI tags when searching" />
 
