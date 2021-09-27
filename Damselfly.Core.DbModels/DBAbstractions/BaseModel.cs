@@ -306,6 +306,11 @@ namespace Damselfly.Core.DbModels.DBAbstractions
             return SaveChangesAsync(contextDesc).GetAwaiter().GetResult();
         }
 
+        /// <summary>
+        /// Re-geneterate the full text index, bringing it up to date
+        /// </summary>
+        /// <param name="first"></param>
+        /// <returns></returns>
         public async Task GenFullText( bool first )
         {
             if (ReadOnly)

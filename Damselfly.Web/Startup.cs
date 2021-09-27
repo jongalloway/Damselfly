@@ -283,6 +283,16 @@ namespace Damselfly.Web
                 WorkMethod = () => Stopwatch.WriteTotals(false)
             });
 
+            // Dump performance stats out to the logfile
+            tasks.Add(new ScheduledTask
+            {
+                Type = ScheduledTask.TaskType.FreeTextIndex,
+                ExecutionFrequency = new TimeSpan(24, 0, 0),
+                WorkMethod = async () => { using var db = new ImageContext(); await db.GenFullText(true); }
+                                
+
+        });
+
             // Flush the DB WriteCache (currently a no-op except for SQLite
             /*
             tasks.Add( new ScheduledTask

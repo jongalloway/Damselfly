@@ -612,7 +612,7 @@ namespace Damselfly.Core.Models
             Date
         };
 
-        public string SearchText { get; set; }
+        public string SearchText { get; set; } = string.Empty;
         public DateTime? MaxDate { get; set; } = null;
         public DateTime? MinDate { get; set; } = null;
         public int? MaxSizeKB { get; set; } = null;

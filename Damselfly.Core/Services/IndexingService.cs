@@ -39,8 +39,8 @@ namespace Damselfly.Core.Services
         private readonly ImageCache _imageCache;
         private readonly ImageProcessService _imageProcessService;
 
-        public ICollection<Camera> Cameras {  get { return _cameraCache.Values;  } }
-        public ICollection<Lens> Lenses { get { return _lensCache.Values; } }
+        public ICollection<Camera> Cameras {  get { return _cameraCache.Values.OrderBy(x => x.Make).ThenBy(x => x.Model).ToList();  } }
+        public ICollection<Lens> Lenses { get { return _lensCache.Values.OrderBy( x => x.Make ).ThenBy( x => x.Model ).ToList(); } }
 
         public IndexingService( StatusService statusService, MetaDataService metaData, 
             ImageProcessService imageService, ConfigService config, ImageCache imageCache )
@@ -467,12 +467,13 @@ namespace Damselfly.Core.Services
         /// </summary>
         /// <param name="imageKeywords"></param>
         /// <param name="type"></param>
-        private async Task AddTags( IDictionary<Image, string[]> imageKeywords )
+        private async Task<int> AddTags( IDictionary<Image, string[]> imageKeywords )
         {
             // See if we have any images that were written to the DB and have IDs
             if ( ! imageKeywords.Where( x => x.Key.ImageId != 0 ).Any())
-                return;
+                return 0;
 
+            int tagsAdded = 0;
             var watch = new Stopwatch("AddTags");
 
             using ImageContext db = new ImageContext();
@@ -520,7 +521,7 @@ namespace Damselfly.Core.Services
 
                         transaction.Commit();
 
-                        await db.GenFullText(false);
+                        tagsAdded = newImageTags.Count;
                     }
                 }
                 catch (Exception ex)
@@ -530,6 +531,8 @@ namespace Damselfly.Core.Services
             }
 
             watch.Stop();
+
+            return tagsAdded;
         }
 
         /// <summary>
@@ -868,8 +871,6 @@ namespace Damselfly.Core.Services
             {
                 using var db = new ImageContext();
 
-                await db.GenFullText(true);
-
                 const int batchSize = 100;
                 bool complete = false;
 
@@ -997,11 +998,18 @@ namespace Damselfly.Core.Services
                         var tagWatch = new Stopwatch("AddTagsSave");
 
                         // Now save the tags
-                        await AddTags( imageKeywords );
+                        var tagsAdded = await AddTags( imageKeywords );
 
                         tagWatch.Stop();
 
                         batchWatch.Stop();
+
+                        if (newMetadataEntries.Any() || updatedEntries.Any() || tagsAdded > 0)
+                        {
+                            // We've got new/updated images, or images with new tags. 
+                            // Trigger the full-text index to be regenerated.
+                            await db.GenFullText(false);
+                        }
 
                         Logging.Log($"Completed metadata scan: {imagesToScan.Length} images, {newMetadataEntries.Count} added, {updatedEntries.Count} updated, {imageKeywords.Count} keywords added, in {batchWatch.HumanElapsedTime}.");
                         Logging.LogVerbose($"Time for metadata scan batch: {batchWatch.HumanElapsedTime}, save: {saveWatch.HumanElapsedTime}, tag writes: {tagWatch.HumanElapsedTime}.");

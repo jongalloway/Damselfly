@@ -15,57 +15,58 @@
         <MudText Typo="Typo.h6">Advanced Search</MudText>
     </TitleContent>
     <DialogContent>
-        <EditForm Model="@Query" OnValidSubmit="OnValidSubmit">
-            <DataAnnotationsValidator />
+        <MudTextField @bind-Value="@Query.SearchText" Label="Search Text" Variant="Variant.Filled" />
 
-            <MudTextField @bind-Value="@Query.SearchText" Label="Search Text" Variant="Variant.Filled" />
+        <MudCheckBox @bind-Checked="@Query.TagsOnly" Label="Exclude filename/folder from text search" />
+        <MudCheckBox @bind-Checked="@Query.IncludeAITags" Label="Include AI tags when searching" />
 
-            <MudCheckBox @bind-Checked="@Query.TagsOnly" Label="Exclude filename/folder from text search" />
-            <MudCheckBox @bind-Checked="@Query.IncludeAITags" Label="Include AI tags when searching" />
+        <!-- Add Search text, date, tag, person etc etc -->
+        <MudSelect T="int" Label="Camera" HelperText="Camera Model to filter" @bind-Value="Query.CameraId" Variant="Variant.Filled">
+            <MudSelectItem T="int" Value="-1">Any Camera</MudSelectItem>
+            @foreach (var cam in indexingService.Cameras)
+            {
+                <MudSelectItem T="int" Value="@cam.CameraId">
+                    @cam.Make @cam.Model
+                </MudSelectItem>
+            }
+        </MudSelect>
+        <MudSelect T="int" Label="Lens" HelperText="Lens Model to filter" @bind-Value="Query.LensId" Variant="Variant.Filled">
+            <MudSelectItem T="int" Value="-1">Any Lens</MudSelectItem>
+            @foreach (var lens in indexingService.Lenses)
+            {
+                <MudSelectItem T="int" Value="@lens.LensId">
+                    @lens.Make @lens.Model
+                </MudSelectItem>
+            }
+        </MudSelect>
+        <MudSelect T="int?" Label="Max File Size" HelperText="Max File Size" @bind-Value="Query.MaxSizeKB" Variant="Variant.Filled">
+            <MudSelectItem T="int?" Value="@null">Any Size</MudSelectItem>
+            @foreach (var choice in fileSizeChoices)
+            {
+                <MudSelectItem T="int?" Value="@choice.Value">
+                    @choice.Key
+                </MudSelectItem>
+            }
+        </MudSelect>
 
-            <!-- Add Search text, date, tag, person etc etc -->
-            <MudSelect T="int" Label="Camera" HelperText="Camera Model to filter" @bind-Value="Query.CameraId" Variant="Variant.Filled">
-                <MudSelectItem T="int" Value="-1">Any Camera</MudSelectItem>
-                @foreach (var cam in indexingService.Cameras)
-                {
-                    <MudSelectItem T="int" Value="@cam.CameraId">
-                        @cam.Make @cam.Model
-                    </MudSelectItem>
-                }
-            </MudSelect>
-            <MudSelect T="int" Label="Lens" HelperText="Lens Model to filter" @bind-Value="Query.LensId" Variant="Variant.Filled">
-                <MudSelectItem T="int" Value="-1">Any Lens</MudSelectItem>
-                @foreach (var lens in indexingService.Lenses)
-                {
-                    <MudSelectItem T="int" Value="@lens.LensId">
-                        @lens.Make @lens.Model
-                    </MudSelectItem>
-                }
-            </MudSelect>
-            <MudSelect T="int?" Label="Max File Size" HelperText="Max File Size" @bind-Value="Query.MaxSizeKB" Variant="Variant.Filled">
-                <MudSelectItem T="int?" Value="@null">Any Size</MudSelectItem>
-                @foreach (var choice in fileSizeChoices)
-                {
-                    <MudSelectItem T="int?" Value="@choice.Value">
-                        @choice.Key
-                    </MudSelectItem>
-                }
-            </MudSelect>
-
-            <MudSelect T="int?" Label="Min File Size" HelperText="Min File Size" @bind-Value="Query.MinSizeKB" Variant="Variant.Filled">
-                <MudSelectItem T="int?" Value="@null">Any Size</MudSelectItem>
-                @foreach (var choice in fileSizeChoices)
-                {
-                    <MudSelectItem T="int?" Value="@choice.Value">
-                        @choice.Key
-                    </MudSelectItem>
-                }
-            </MudSelect>
-        </EditForm>
+        <MudSelect T="int?" Label="Min File Size" HelperText="Min File Size" @bind-Value="Query.MinSizeKB" Variant="Variant.Filled">
+            <MudSelectItem T="int?" Value="@null">Any Size</MudSelectItem>
+            @foreach (var choice in fileSizeChoices)
+            {
+                <MudSelectItem T="int?" Value="@choice.Value">
+                    @choice.Key
+                </MudSelectItem>
+            }
+        </MudSelect>
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Cancel">Close</MudButton>
-        <MudButton Color="Color.Primary" OnClick="Search">Search</MudButton>
+        <MudItem xs="12" md="12">
+            <MudPaper Elevation="0" Class="d-flex py-2 px-1">
+                <MudButton Class="pa-2 ml-2 mr-auto" Color="Color.Warning" OnClick="ResetSearch">Reset</MudButton>
+                <MudButton Class="pa-2 mx-2" OnClick="Cancel">Cancel</MudButton>
+                <MudButton Class="pa-2 mx-2" Color="Color.Primary" OnClick="Search">Search</MudButton>
+            </MudPaper>
+        </MudItem>
     </DialogActions>
 </MudDialog>
 
@@ -88,27 +89,24 @@
         new KeyValuePair<string, int>( "50MB", 50 * 1024 ),
     };
 
-
-    private async Task OnValidSubmit(EditContext context)
+    private void ResetSearch()
     {
-        await Search();
+        Query = new SearchQuery();
+        Search();
     }
 
-
-    public async Task Search()
+    private void Search()
     {
-        var db = new ImageContext();
-
         try
         {
-            searchService.ApplyQuery(Query);
-
             MudDialog.Close(DialogResult.Ok(true));
+
+            searchService.ApplyQuery(Query);
         }
         catch (Exception ex)
         {
-            Logging.LogError($"Unexpected error saving basket details: {ex}");
-            DisplayError($"Unexpected error saving basket {ex.Message}");
+            Logging.LogError($"Unexpected error in search dialog: {ex}");
+            DisplayError($"Unexpected error in search parameters: {ex.Message}");
         }
     }
 
