@@ -609,9 +609,11 @@ f
 
 .damselfly-searchbar {
     display: flex;
-    align-items: stretch;
+    align-items: baseline;
     flex: 0 0 auto;
     flex-flow: row wrap;
+    margin-left: 4px;
+    margin-right: 4px;
     font-size: 10pt;
 }
 
@@ -679,6 +681,14 @@ f
     flex: 1;
     margin: 4px;
     flex-flow: row;
+}
+
+.damselfly-browsetool:hover {
+    opacity: 100%;
+}
+
+.damselfly-browsetool-deselected {
+    opacity: 50%;
 }
 
 .damselfly-searchhint {

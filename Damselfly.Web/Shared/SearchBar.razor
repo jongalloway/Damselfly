@@ -16,7 +16,7 @@
         <DatePickerEx OnRangeSelect="@OnRangeSelect" StartDate="@searchService.MinDate" EndDate="@searchService.MaxDate" />
     </div>
     <div class="damselfly-searchhint">
-        <label class="damselfly-browsetoollabel"><i class="fas fa-search" title="Current Search Parameters" />&nbsp;@searchService.SearchBreadcrumbs</label>
+        <label class="damselfly-browsetoollabel" title="Current Search Parameters">@searchService.SearchBreadcrumbs</label>
     </div>
 
     <div class="damselfly-browsetool">
@@ -35,9 +35,9 @@
     </div>
     <div class="damselfly-browsetools">
         <button class="damselfly-browsetool btn btn-primary" title="Advanced Search" @onclick="@(() => OpenAdvancedSearch())"><i class="fas fa-search" /></button>
-        <div class="damselfly-browsetool"><i title="Small Thumbnails" class="fas fa-image" style="font-size:smaller;" @onclick="() => OnThumbSizeChanged?.Invoke(ThumbSize.Small)" /></div>
-        <div class="damselfly-browsetool"><i title="Medium Thumbnails" class="fas fa-image" @onclick="() => OnThumbSizeChanged?.Invoke(ThumbSize.Medium)" /></div>
-        <div class="damselfly-browsetool"><i title="Large Thumbnails" class="fas fa-image" style="font-size:larger;" @onclick="() => OnThumbSizeChanged?.Invoke(ThumbSize.Large)" /></div>
+        <div class="damselfly-browsetool @SelectedStyle( ThumbSize.Small )"><i title="Small Thumbnails" class="fas fa-image" style="font-size:smaller;" @onclick="() => ChangeThumbSize(ThumbSize.Small)" /></div>
+        <div class="damselfly-browsetool @SelectedStyle( ThumbSize.Medium )"><i title="Medium Thumbnails" class="fas fa-image" @onclick="() => ChangeThumbSize(ThumbSize.Medium)" /></div>
+        <div class="damselfly-browsetool @SelectedStyle( ThumbSize.Large )"><i title="Large Thumbnails" class="fas fa-image" style="font-size:larger;" @onclick="() => ChangeThumbSize(ThumbSize.Large)" /></div>
         @if (searchService.SortOrder == SearchQuery.SortOrderType.Descending)
         {
             <div class="damselfly-browsetool"><i title="Sort Ascending" class="fas fa-sort-amount-up" @onclick="() => ChangeSortOrder(SearchQuery.SortOrderType.Ascending)" /></div>
@@ -55,6 +55,18 @@
     public Action<ThumbSize> OnThumbSizeChanged { get; set; }
 
     ThumbSize CurrentThumbSize = ThumbSize.Small;
+
+    private void ChangeThumbSize( ThumbSize newSize )
+    {
+        CurrentThumbSize = newSize;
+        OnThumbSizeChanged?.Invoke(newSize);
+        StateHasChanged();
+    }
+
+    private string SelectedStyle( ThumbSize size )
+    {
+        return CurrentThumbSize != size ? "damselfly-browsetool-deselected" : String.Empty;
+    }
 
     protected override void OnInitialized()
     {
