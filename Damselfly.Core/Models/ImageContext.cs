@@ -97,6 +97,7 @@ namespace Damselfly.Core.Models
             modelBuilder.Entity<Image>().HasIndex(x => x.SortDate);
             modelBuilder.Entity<Folder>().HasIndex(x => x.FolderScanDate);
             modelBuilder.Entity<Folder>().HasIndex(x => x.Path);
+            modelBuilder.Entity<Person>().HasIndex(x => x.State);
             modelBuilder.Entity<Tag>().HasIndex(x => new { x.Keyword }).IsUnique();
 
             modelBuilder.Entity<ImageMetaData>().HasIndex(x => x.ImageId);
@@ -460,8 +461,7 @@ namespace Damselfly.Core.Models
         public enum PersonState
         {
             Unknown = 0,
-            Identified = 1,
-            Confirmed = 2
+            Identified = 1
         };
 
         [Key]

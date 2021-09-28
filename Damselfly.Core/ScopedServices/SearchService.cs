@@ -221,8 +221,8 @@ namespace Damselfly.Core.ScopedServices
                         {
                             FaceSearchType.Faces => images.Where(x => x.ImageObjects.Any(x => x.Type == ImageObject.ObjectTypes.Face.ToString() )),
                             FaceSearchType.NoFaces => images.Where(x => !x.ImageObjects.Any(x => x.Type == ImageObject.ObjectTypes.Face.ToString() )),
-                            FaceSearchType.UnidentifiedFaces => images.Where(x => x.ImageObjects.Any(x => x.Person == null || x.Person.Name.Equals("Unknown"))),
-                            FaceSearchType.IdentifiedFaces => images.Where(x => x.ImageObjects.Any(x => x.Person != null && ! x.Person.Name.Equals("Unknown"))),
+                            FaceSearchType.UnidentifiedFaces => images.Where(x => x.ImageObjects.Any(x => x.Person.State == Person.PersonState.Unknown)),
+                            FaceSearchType.IdentifiedFaces => images.Where(x => x.ImageObjects.Any(x => x.Person.State == Person.PersonState.Identified)),
                             _ => images
                         };
                             

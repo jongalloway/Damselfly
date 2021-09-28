@@ -116,16 +116,15 @@
 
             if (theObject.Person == null)
             {
-                theObject.Person = new Person { Name = name };
                 db.People.Add(theObject.Person);
                 db.ImageObjects.Update(theObject);
             }
             else
-            {
-                // TODO: If this is an existing person/name, we might need to merge in Azure
-                theObject.Person.Name = name;
                 db.People.Update(theObject.Person);
-            }
+
+            // TODO: If this is an existing person/name, we might need to merge in Azure
+            theObject.Person = new Person { Name = name };
+            theObject.Person.State = Person.PersonState.Identified;
 
             db.SaveChanges("SetName");
 
