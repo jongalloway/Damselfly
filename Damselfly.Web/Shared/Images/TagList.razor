@@ -217,13 +217,15 @@
         {
             try
             {
+                using var db = new ImageContext();
+
                 var tagLists = CurrentImages.SelectMany(x => x.ImageObjects )
                                              .Select( x => new AITag
                                              {
                                                  Icon = x.Type == "Face" ? "fa-user" : "fa-lightbulb",
                                                  Name = x.GetTagName()
                                              })
-                                             .Distinct()
+                                             .DistinctBy( x => x.Name )
                                              .OrderBy( x => x.Name )
                                              .ToList();
 
